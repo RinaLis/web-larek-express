@@ -14,7 +14,7 @@ const router = Router();
 
 router.get('/', getProducts);
 
-router.post('/', authCheck, celebrate({
+router.post('/', celebrate({
   [Segments.BODY]: productCreateValidationSchema,
 }), createProduct);
 
