@@ -69,9 +69,9 @@ function rewriteImageFromTemp(imageName: string) {
     const writer = fs.createWriteStream(newFilePath, { encoding: 'base64' });
 
     reader.pipe(writer);
-  } catch(err) {
+  } catch (err) {
     if (err instanceof BadRequestError) {
-      return; // тесты при PR не учитывают такой вариант ошибки
+      // тесты при PR не учитывают такой вариант ошибки
     }
   }
 }

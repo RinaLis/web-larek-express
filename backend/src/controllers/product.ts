@@ -20,7 +20,6 @@ export const createProduct = (req: Request, res: Response, next: NextFunction) =
       res.status(201).send({ data: product });
     })
     .catch((err) => {
-      console.log(err)
       if (err instanceof MongooseError.ValidationError) {
         return next(new BadRequestError(err.message));
       }
