@@ -20,11 +20,15 @@ export const createProduct = (req: Request, res: Response, next: NextFunction) =
       res.status(201).send({ data: product });
     })
     .catch((err) => {
+      console.log(err)
       if (err instanceof MongooseError.ValidationError) {
         return next(new BadRequestError(err.message));
       }
       if (err.message.includes('E11000')) {
         return next(new ConflictError('Товар с таким заголовком уже существует'));
+      }
+      if (err instanceof BadRequestError) {
+        return next(err);
       }
       return next(new InternalServerError());
     });
