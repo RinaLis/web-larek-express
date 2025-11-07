@@ -3,11 +3,10 @@ import { Error as MongooseError } from 'mongoose';
 import ConflictError from '../errors/conflict-error';
 import Product from '../models/product';
 import BadRequestError from '../errors/bad-request-error';
-import InternalServerError from '../errors/internal-server-error';
 
 export const getProducts = (_req: Request, res: Response, next: NextFunction) => Product.find({})
   .then((products) => res.send({ items: products, total: products.length }))
-  .catch(() => { next(new InternalServerError()); });
+  .catch((err) => next(err));
 
 export const createProduct = (req: Request, res: Response, next: NextFunction) => {
   const {
@@ -29,7 +28,7 @@ export const createProduct = (req: Request, res: Response, next: NextFunction) =
       if (err instanceof BadRequestError) {
         return next(err);
       }
-      return next(new InternalServerError());
+      return next(err);
     });
 };
 
@@ -43,7 +42,7 @@ export const deleteProduct = (req: Request, res: Response, next: NextFunction) =
       res.send(product);
       return next();
     })
-    .catch(() => next(new InternalServerError()));
+    .catch((err) => next(err));
 };
 
 export const updateProduct = (req: Request, res: Response, next: NextFunction) => {
@@ -63,6 +62,6 @@ export const updateProduct = (req: Request, res: Response, next: NextFunction) =
       if (err instanceof BadRequestError) {
         return next(err);
       }
-      return next(new InternalServerError());
+      return next(err);
     });
 };

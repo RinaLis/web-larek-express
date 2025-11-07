@@ -2,9 +2,8 @@ import { NextFunction, Request, Response } from 'express';
 import FileType from 'file-type';
 import * as fs from 'fs';
 import * as path from 'path';
+import { RANDOM_IMAGE_NAME_SIZE } from '../config';
 import BadRequestError from '../errors/bad-request-error';
-
-const RANDOM_IMAGE_NAME_SIZE = 16;
 
 const makeid = (length: number) => {
   let result = '';

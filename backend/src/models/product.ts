@@ -1,15 +1,16 @@
 import { model, Schema } from 'mongoose';
 import * as fs from 'fs';
 import * as path from 'path';
-import InternalServerError from '../errors/internal-server-error';
 import BadRequestError from '../errors/bad-request-error';
+
+export interface IFile {
+  fileName: string,
+  originalName: string;
+}
 
 export interface IProduct {
     title: string;
-    image: {
-      fileName: string,
-      originalName: string;
-    };
+    image: IFile;
     category: string;
     description: string;
     price: number;
@@ -49,7 +50,7 @@ const productSchema = new Schema<IProduct>({
 productSchema.post('findOneAndDelete', (doc) => {
   fs.unlink(path.join(__dirname, '..', '..', 'public', doc.image.fileName), (err) => {
     if (err) {
-      throw new InternalServerError();
+      throw new Error();
     }
   });
 });

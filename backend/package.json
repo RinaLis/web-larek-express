@@ -4,7 +4,7 @@
   "description": "< Добавьте описание проекта в свободной форме >",
   "main": "dist/app.js",
   "scripts": {
-    "lint": "npx eslint src/**/*.ts",
+    "lint": "npx eslint src/**/*.ts --fix",
     "build": "tsc",
     "dev": "npx nodemon -L src/app.ts ",
     "start": "ts-node src/app.ts",
@@ -37,6 +37,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.19.2",
+    "express-rate-limit": "^8.2.1",
     "express-winston": "^4.2.0",
     "file-type": "^21.0.0",
     "jsonwebtoken": "^9.0.2",

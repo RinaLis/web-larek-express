@@ -1,30 +1,15 @@
 import {
-  NextFunction, Request, Response, CookieOptions,
+  NextFunction, Request, Response,
 } from 'express';
 import { Error as MongooseError } from 'mongoose';
-import ms, { StringValue } from 'ms';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
+import { REFRESH_TOKEN } from '../config';
 import ConflictError from '../errors/conflict-error';
 import BadRequestError from '../errors/bad-request-error';
 import UnauthorizatedError from '../errors/unauthorized-error';
-import InternalServerError from '../errors/internal-server-error';
 import NotFoundError from '../errors/not-found-error';
-import { UserJwtPayload, UserIdRequest } from '../middlewares/auth';
-
-const REFRESH_TOKEN = {
-  secret: process.env.AUTH_REFRESH_TOKEN_SECRET,
-  cookie: {
-    name: 'refreshToken',
-    options: {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: false,
-      maxAge: ms(process.env.AUTH_REFRESH_TOKEN_SECRET as StringValue || '7d'),
-      path: '/',
-    } as CookieOptions,
-  },
-};
+import { UserIdRequest } from '../middlewares/auth';
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
@@ -48,7 +33,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       if (err instanceof UnauthorizatedError) {
         return next(err);
       }
-      return next(new InternalServerError());
+      return next(err);
     });
 };
 
@@ -77,7 +62,7 @@ export const signUp = async (req: Request, res: Response, next: NextFunction) =>
       if (err.message.includes('E11000')) {
         return next(new ConflictError('Пользователь с таким email уже существует'));
       }
-      return next(new InternalServerError());
+      return next(err);
     });
 };
 
@@ -108,29 +93,34 @@ export const logout = async (req: Request, res: Response, next: NextFunction) =>
     });
     return next();
   } catch (error) {
-    return next(new InternalServerError());
+    return next(error);
   }
 };
 
 export const getCurrentUser = async (req: Request, res: Response, next: NextFunction) => {
-  const { userId } = req as UserIdRequest;
-  const user = await User.findById(userId);
-  if (!user) {
-    return next(new NotFoundError('Пользователь не найден'));
+  try {
+    const { userId } = req as UserIdRequest;
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new NotFoundError('Пользователь не найден'));
+    }
+    res.status(201).json({
+      success: true,
+      user,
+    });
+  } catch (err) {
+    return next(err);
   }
-  res.status(201).json({
-    success: true,
-    user,
-  });
+
   return next();
 };
 
 export const refreshAccessToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const { userId } = req as UserIdRequest;
     const { refreshToken } = req.cookies;
-    const payload = jwt.verify(refreshToken, `${REFRESH_TOKEN.secret}`) as UserJwtPayload;
     const userWithRefreshTkn = await User.findOne({
-      _id: payload._id,
+      _id: userId,
       'tokens.token': refreshToken,
     });
     if (!userWithRefreshTkn) {
@@ -149,6 +139,6 @@ export const refreshAccessToken = async (req: Request, res: Response, next: Next
     if (err instanceof jwt.TokenExpiredError) {
       return next(new UnauthorizatedError('Пользователь неавторизован'));
     }
-    return next(new InternalServerError());
+    return next(err);
   }
 };

@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
 import Product from '../models/product';
 import BadRequestError from '../errors/bad-request-error';
-import InternalServerError from '../errors/internal-server-error';
 
 const orderMiddleware = async (req: Request, _: Response, next: NextFunction) => {
   const { items, total } = req.body;
@@ -21,7 +20,7 @@ const orderMiddleware = async (req: Request, _: Response, next: NextFunction) =>
       if (err instanceof BadRequestError) {
         return next(err);
       }
-      return next(new InternalServerError());
+      return next(err);
     });
 
   if (itemProducts) {
@@ -33,7 +32,7 @@ const orderMiddleware = async (req: Request, _: Response, next: NextFunction) =>
 
     return next();
   }
-  return next(new InternalServerError());
+  return next(new Error());
 };
 
 export default orderMiddleware;

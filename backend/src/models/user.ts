@@ -4,17 +4,8 @@ import {
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { StringValue } from 'ms';
+import { ACCESS_TOKEN, REFRESH_TOKEN, BCRYPT_SALT } from '../config';
 import UnauthorizedError from '../errors/unauthorized-error';
-import InternalServerError from '../errors/internal-server-error';
-
-const ACCESS_TOKEN = {
-  secret: process.env.AUTH_ACCESS_TOKEN_SECRET,
-  expiry: process.env.AUTH_ACCESS_TOKEN_EXPIRY,
-};
-const REFRESH_TOKEN = {
-  secret: process.env.AUTH_REFRESH_TOKEN_SECRET,
-  expiry: process.env.AUTH_REFRESH_TOKEN_EXPIRY,
-};
 
 export interface IUser {
   name: string;
@@ -49,7 +40,6 @@ const userSchema = new Schema<IUser, UserModel>({
   },
   password: {
     type: String,
-    minlength: [6, 'Минимальная длина поля "password" - 6'],
     required: [true, 'Поле "password" должно быть заполнено'],
     select: false,
   },
@@ -75,11 +65,11 @@ userSchema.set('toJSON', {
 userSchema.pre('save', async function (next) {
   try {
     if (this.isModified('password')) {
-      this.password = await bcrypt.hash(this.password, 10);
+      this.password = await bcrypt.hash(this.password, BCRYPT_SALT);
     }
     next();
-  } catch (err) {
-    next(new InternalServerError());
+  } catch {
+    next(new Error());
   }
 });
 
